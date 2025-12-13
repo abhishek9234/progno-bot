@@ -18,30 +18,32 @@ export function useJiraData() {
 
   const enableDemoMode = useCallback(() => {
     setIsDemoMode(true);
-    setProjects(demoProjects);
+    // Merge demo projects with existing Jira projects
+    setProjects(prev => {
+      const existingKeys = prev.map(p => p.key);
+      const newDemoProjects = demoProjects.filter(dp => !existingKeys.includes(dp.key));
+      return [...prev, ...newDemoProjects];
+    });
+    // Select first demo project
     setSelectedProject(demoProjects[0]);
     setIssues(demoIssues);
     setProjectHealth(generateDemoProjectHealth());
     toast({
       title: "Demo Mode Enabled",
-      description: "Using sample data for demonstration purposes.",
+      description: "Demo data added alongside existing Jira projects.",
     });
   }, [toast]);
 
   const disableDemoMode = useCallback(() => {
     setIsDemoMode(false);
-    setProjects([]);
+    // Remove demo projects, keep Jira projects
+    setProjects(prev => prev.filter(p => !demoProjects.some(dp => dp.key === p.key)));
     setSelectedProject(null);
     setIssues([]);
     setProjectHealth(null);
   }, []);
 
   const fetchProjects = useCallback(async () => {
-    if (isDemoMode) {
-      setProjects(demoProjects);
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('jira-api', {
@@ -50,13 +52,26 @@ export function useJiraData() {
 
       if (error) throw error;
       
-      setProjects(data.projects || []);
+      const jiraProjects = data.projects || [];
       
-      if (data.projects?.length > 0 && !selectedProject) {
-        setSelectedProject(data.projects[0]);
+      // If in demo mode, merge with demo projects
+      if (isDemoMode) {
+        const existingKeys = jiraProjects.map((p: JiraProject) => p.key);
+        const newDemoProjects = demoProjects.filter(dp => !existingKeys.includes(dp.key));
+        setProjects([...jiraProjects, ...newDemoProjects]);
+      } else {
+        setProjects(jiraProjects);
+      }
+      
+      if (jiraProjects.length > 0 && !selectedProject) {
+        setSelectedProject(jiraProjects[0]);
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
+      // If fetch fails and in demo mode, still show demo projects
+      if (isDemoMode) {
+        setProjects(demoProjects);
+      }
       toast({
         title: "Connection Error",
         description: "Failed to fetch Jira projects. Try Demo Mode to explore the dashboard.",
@@ -68,7 +83,10 @@ export function useJiraData() {
   }, [toast, selectedProject, isDemoMode]);
 
   const fetchProjectIssues = useCallback(async (projectKey: string) => {
-    if (isDemoMode) {
+    // Check if this is a demo project
+    const isDemoProject = demoProjects.some(dp => dp.key === projectKey);
+    
+    if (isDemoProject) {
       setIssues(demoIssues);
       setProjectHealth(generateDemoProjectHealth());
       return;
@@ -100,7 +118,7 @@ export function useJiraData() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, isDemoMode]);
+  }, [toast]);
 
   const calculateProjectHealth = (issues: JiraIssue[]): ProjectHealth => {
     const now = new Date();
