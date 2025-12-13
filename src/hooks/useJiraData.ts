@@ -8,12 +8,12 @@ const HOURLY_RATE = 40;
 const HOURS_PER_SP = 8;
 
 export function useJiraData() {
-  const [projects, setProjects] = useState<JiraProject[]>([]);
-  const [selectedProject, setSelectedProject] = useState<JiraProject | null>(null);
-  const [issues, setIssues] = useState<JiraIssue[]>([]);
-  const [projectHealth, setProjectHealth] = useState<ProjectHealth | null>(null);
+  const [projects, setProjects] = useState<JiraProject[]>(demoProjects);
+  const [selectedProject, setSelectedProject] = useState<JiraProject | null>(demoProjects[0]);
+  const [issues, setIssues] = useState<JiraIssue[]>(demoIssues);
+  const [projectHealth, setProjectHealth] = useState<ProjectHealth | null>(generateDemoProjectHealth());
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(true);
   const { toast } = useToast();
 
   const enableDemoMode = useCallback(() => {
