@@ -10,7 +10,9 @@ import { FollowUpPanel } from "@/components/FollowUpPanel";
 import { AIAssistant } from "@/components/AIAssistant";
 import { DetailModal } from "@/components/DetailModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Bot, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Zap, Play, X } from "lucide-react";
 
 type DetailModalType = 'schedule' | 'cost' | 'risk' | 'escalation' | 'followup' | null;
 
@@ -21,6 +23,9 @@ const Index = () => {
     setSelectedProject,
     projectHealth,
     isLoading,
+    isDemoMode,
+    enableDemoMode,
+    disableDemoMode,
     fetchProjects,
     fetchProjectIssues,
     refreshData
@@ -66,15 +71,44 @@ const Index = () => {
                   <p className="text-xs text-muted-foreground">AI-Powered Project Management</p>
                 </div>
               </div>
+              {isDemoMode && (
+                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                  Demo Mode
+                </Badge>
+              )}
             </div>
 
-            <ProjectSelector
-              projects={projects}
-              selectedProject={selectedProject}
-              onSelectProject={handleProjectChange}
-              onRefresh={refreshData}
-              isLoading={isLoading}
-            />
+            <div className="flex items-center gap-3">
+              {isDemoMode ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={disableDemoMode}
+                  className="border-warning/50 text-warning hover:bg-warning/10"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Exit Demo
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={enableDemoMode}
+                  className="border-primary/50 hover:bg-primary/10"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Try Demo
+                </Button>
+              )}
+              
+              <ProjectSelector
+                projects={projects}
+                selectedProject={selectedProject}
+                onSelectProject={handleProjectChange}
+                onRefresh={refreshData}
+                isLoading={isLoading}
+              />
+            </div>
           </div>
         </div>
       </header>
@@ -86,10 +120,17 @@ const Index = () => {
               <Bot className="h-16 w-16 text-primary" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Welcome to PM Assistant</h2>
-            <p className="text-muted-foreground max-w-md">
+            <p className="text-muted-foreground max-w-md mb-6">
               Select a project from the dropdown above to view health metrics, 
               analyze risks, and get AI-powered insights.
             </p>
+            <Button
+              onClick={enableDemoMode}
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Try Demo Mode
+            </Button>
           </div>
         ) : isLoading && !projectHealth ? (
           <div className="space-y-6">
