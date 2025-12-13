@@ -44,8 +44,8 @@ serve(async (req) => {
     }
 
     if (action === 'getProjectIssues' && projectKey) {
-      // Use POST method for search which is more reliable
-      const searchUrl = `${JIRA_BASE_URL}/rest/api/3/search`;
+      // Use the new /rest/api/3/search/jql endpoint (POST method)
+      const searchUrl = `${JIRA_BASE_URL}/rest/api/3/search/jql`;
       const searchBody = {
         jql: `project = "${projectKey}" ORDER BY created DESC`,
         maxResults: 100,
@@ -64,7 +64,8 @@ serve(async (req) => {
         ]
       };
 
-      console.log('Search request:', JSON.stringify(searchBody));
+      console.log('Search URL:', searchUrl);
+      console.log('Search body:', JSON.stringify(searchBody));
 
       const response = await fetch(searchUrl, {
         method: 'POST',
@@ -74,29 +75,13 @@ serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Jira search error:', response.status, errorText);
-        
-        // If POST fails, try GET as fallback
-        console.log('Trying GET fallback...');
-        const jql = encodeURIComponent(`project = "${projectKey}" ORDER BY created DESC`);
-        const getResponse = await fetch(
-          `${JIRA_BASE_URL}/rest/api/2/search?jql=${jql}&maxResults=100`,
-          { headers }
-        );
-        
-        if (!getResponse.ok) {
-          const getErrorText = await getResponse.text();
-          console.error('Jira GET search error:', getResponse.status, getErrorText);
-          throw new Error(`Jira API error: ${getResponse.status}`);
-        }
-        
-        const getData = await getResponse.json();
-        return new Response(JSON.stringify({ issues: getData.issues || [] }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        console.error('Jira search/jql error:', response.status, errorText);
+        throw new Error(`Jira API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log(`Found ${data.issues?.length || 0} issues`);
+      
       return new Response(JSON.stringify({ issues: data.issues || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
