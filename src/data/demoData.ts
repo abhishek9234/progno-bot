@@ -5,9 +5,6 @@ const HOURS_PER_SP = 8;
 
 export const demoProjects: JiraProject[] = [
   { id: "demo-1", key: "ECOM", name: "E-Commerce Platform", projectTypeKey: "software" },
-  { id: "demo-2", key: "MOBILE", name: "Mobile App Development", projectTypeKey: "software" },
-  { id: "demo-3", key: "INFRA", name: "Infrastructure Modernization", projectTypeKey: "software" },
-  { id: "demo-4", key: "CRM", name: "CRM System Overhaul", projectTypeKey: "software" },
 ];
 
 const now = new Date();
