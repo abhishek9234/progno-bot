@@ -2,9 +2,10 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { JiraProject, JiraIssue, ProjectHealth, ScheduleMetrics, CostMetrics, RiskMetrics, EscalationMetrics, FollowUpMetrics, RiskFactor, FollowUpItem, EscalationItem } from "@/types/project";
 import { useToast } from "@/hooks/use-toast";
+import { demoProjects, demoIssues, generateDemoProjectHealth } from "@/data/demoData";
 
-const HOURLY_RATE = 40; // Euro per hour
-const HOURS_PER_SP = 8; // Hours per story point
+const HOURLY_RATE = 40;
+const HOURS_PER_SP = 8;
 
 export function useJiraData() {
   const [projects, setProjects] = useState<JiraProject[]>([]);
@@ -12,9 +13,35 @@ export function useJiraData() {
   const [issues, setIssues] = useState<JiraIssue[]>([]);
   const [projectHealth, setProjectHealth] = useState<ProjectHealth | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const { toast } = useToast();
 
+  const enableDemoMode = useCallback(() => {
+    setIsDemoMode(true);
+    setProjects(demoProjects);
+    setSelectedProject(demoProjects[0]);
+    setIssues(demoIssues);
+    setProjectHealth(generateDemoProjectHealth());
+    toast({
+      title: "Demo Mode Enabled",
+      description: "Using sample data for demonstration purposes.",
+    });
+  }, [toast]);
+
+  const disableDemoMode = useCallback(() => {
+    setIsDemoMode(false);
+    setProjects([]);
+    setSelectedProject(null);
+    setIssues([]);
+    setProjectHealth(null);
+  }, []);
+
   const fetchProjects = useCallback(async () => {
+    if (isDemoMode) {
+      setProjects(demoProjects);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('jira-api', {
@@ -31,16 +58,22 @@ export function useJiraData() {
     } catch (error) {
       console.error('Error fetching projects:', error);
       toast({
-        title: "Error",
-        description: "Failed to fetch Jira projects. Please check your credentials.",
+        title: "Connection Error",
+        description: "Failed to fetch Jira projects. Try Demo Mode to explore the dashboard.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  }, [toast, selectedProject]);
+  }, [toast, selectedProject, isDemoMode]);
 
   const fetchProjectIssues = useCallback(async (projectKey: string) => {
+    if (isDemoMode) {
+      setIssues(demoIssues);
+      setProjectHealth(generateDemoProjectHealth());
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('jira-api', {
@@ -55,25 +88,23 @@ export function useJiraData() {
       const fetchedIssues = data.issues || [];
       setIssues(fetchedIssues);
       
-      // Calculate project health metrics
       const health = calculateProjectHealth(fetchedIssues);
       setProjectHealth(health);
     } catch (error) {
       console.error('Error fetching issues:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch project issues.",
+        description: "Failed to fetch project issues. Try Demo Mode to explore the dashboard.",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, isDemoMode]);
 
   const calculateProjectHealth = (issues: JiraIssue[]): ProjectHealth => {
     const now = new Date();
     
-    // Schedule Metrics
     const epics = issues.filter(i => i.fields.issuetype.name === 'Epic');
     const stories = issues.filter(i => ['Story', 'Task', 'Bug'].includes(i.fields.issuetype.name));
     const completedStories = stories.filter(i => i.fields.status.statusCategory.key === 'done');
@@ -117,7 +148,6 @@ export function useJiraData() {
       scheduleVariance
     };
 
-    // Cost Metrics
     const totalSP = stories.reduce((sum, i) => sum + (i.fields.customfield_10016 || 0), 0);
     const completedSP = completedStories.reduce((sum, i) => sum + (i.fields.customfield_10016 || 0), 0);
     const remainingSP = totalSP - completedSP;
@@ -143,7 +173,6 @@ export function useJiraData() {
       delayedTasks
     };
 
-    // Risk Metrics
     const riskFactors: RiskFactor[] = [];
     
     if (blockedStories.length > 0) {
@@ -214,10 +243,8 @@ export function useJiraData() {
       overdueTasks: delayedTasks
     };
 
-    // Escalation Metrics
     const escalatedItems: EscalationItem[] = [];
     
-    // Items delayed for more than 7 days get escalated
     delayedTasks.forEach(task => {
       const dueDate = new Date(task.fields.duedate!);
       const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -246,10 +273,8 @@ export function useJiraData() {
       recentEscalations: escalatedItems.slice(0, 5)
     };
 
-    // Follow-up Metrics
     const followUpItems: FollowUpItem[] = [];
 
-    // In progress items with due date in next 24 hours
     inProgressStories.forEach(task => {
       if (task.fields.duedate) {
         const dueDate = new Date(task.fields.duedate);
@@ -267,7 +292,6 @@ export function useJiraData() {
       }
     });
 
-    // On hold items need follow-up
     const onHoldItems = stories.filter(i => 
       i.fields.status.name.toLowerCase().includes('hold') ||
       i.fields.status.name.toLowerCase().includes('waiting')
@@ -283,7 +307,6 @@ export function useJiraData() {
       });
     });
 
-    // Upcoming deadlines (next 3 days)
     upcomingDeadlines.forEach(task => {
       if (!followUpItems.find(f => f.issue.key === task.key)) {
         const dueDate = new Date(task.fields.duedate!);
@@ -309,7 +332,6 @@ export function useJiraData() {
       upcomingCount: followUpItems.filter(i => i.urgency === 'upcoming').length
     };
 
-    // Overall Health
     const overallHealth = 
       risk.level === 'critical' || escalation.level >= 3 ? 'critical' :
       risk.level === 'high' || escalation.level >= 2 || followUp.immediateCount > 3 ? 'warning' :
@@ -338,6 +360,9 @@ export function useJiraData() {
     issues,
     projectHealth,
     isLoading,
+    isDemoMode,
+    enableDemoMode,
+    disableDemoMode,
     fetchProjects,
     fetchProjectIssues,
     refreshData
