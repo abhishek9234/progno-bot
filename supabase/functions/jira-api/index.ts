@@ -28,9 +28,15 @@ serve(async (req) => {
       'Content-Type': 'application/json'
     };
 
+    console.log(`Processing action: ${action}, projectKey: ${projectKey}`);
+
     if (action === 'getProjects') {
       const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/project`, { headers });
-      if (!response.ok) throw new Error(`Jira API error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Jira getProjects error:', response.status, errorText);
+        throw new Error(`Jira API error: ${response.status}`);
+      }
       const projects = await response.json();
       return new Response(JSON.stringify({ projects }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -38,12 +44,58 @@ serve(async (req) => {
     }
 
     if (action === 'getProjectIssues' && projectKey) {
-      const jql = encodeURIComponent(`project = ${projectKey} ORDER BY created DESC`);
-      const response = await fetch(
-        `${JIRA_BASE_URL}/rest/api/3/search?jql=${jql}&maxResults=100&fields=summary,status,priority,issuetype,assignee,duedate,created,updated,customfield_10016,parent,labels`,
-        { headers }
-      );
-      if (!response.ok) throw new Error(`Jira API error: ${response.status}`);
+      // Use POST method for search which is more reliable
+      const searchUrl = `${JIRA_BASE_URL}/rest/api/3/search`;
+      const searchBody = {
+        jql: `project = "${projectKey}" ORDER BY created DESC`,
+        maxResults: 100,
+        fields: [
+          "summary",
+          "status",
+          "priority",
+          "issuetype",
+          "assignee",
+          "duedate",
+          "created",
+          "updated",
+          "customfield_10016",
+          "parent",
+          "labels"
+        ]
+      };
+
+      console.log('Search request:', JSON.stringify(searchBody));
+
+      const response = await fetch(searchUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(searchBody)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Jira search error:', response.status, errorText);
+        
+        // If POST fails, try GET as fallback
+        console.log('Trying GET fallback...');
+        const jql = encodeURIComponent(`project = "${projectKey}" ORDER BY created DESC`);
+        const getResponse = await fetch(
+          `${JIRA_BASE_URL}/rest/api/2/search?jql=${jql}&maxResults=100`,
+          { headers }
+        );
+        
+        if (!getResponse.ok) {
+          const getErrorText = await getResponse.text();
+          console.error('Jira GET search error:', getResponse.status, getErrorText);
+          throw new Error(`Jira API error: ${getResponse.status}`);
+        }
+        
+        const getData = await getResponse.json();
+        return new Response(JSON.stringify({ issues: getData.issues || [] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       const data = await response.json();
       return new Response(JSON.stringify({ issues: data.issues || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
