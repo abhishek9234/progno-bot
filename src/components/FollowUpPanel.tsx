@@ -20,9 +20,9 @@ export function FollowUpPanel({ metrics, onViewDetails }: FollowUpPanelProps) {
   const status = metrics.immediateCount > 0 ? 'critical' 
     : metrics.todayCount > 0 ? 'warning' 
     : 'healthy';
-
+//new 
   return (
-    <MetricCard 
+     <MetricCard 
       title="Follow Ups" 
       icon={Bell} 
       status={status}
