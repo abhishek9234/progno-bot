@@ -7,7 +7,7 @@ import { CostPanel } from "@/components/CostPanel";
 import { RiskPanel } from "@/components/RiskPanel";
 import { EscalationPanel } from "@/components/EscalationPanel";
 import { FollowUpPanel } from "@/components/FollowUpPanel";
-import { AIAssistant } from "@/components/AIAssistant";
+import { FloatingAIAssistant } from "@/components/FloatingAIAssistant";
 import { DetailModal } from "@/components/DetailModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -184,16 +184,15 @@ const Index = () => {
               </div>
             </div>
 
-            {/* AI Assistant - Full Width */}
-            <div className="h-[500px]">
-              <AIAssistant 
-                project={selectedProject} 
-                projectHealth={projectHealth}
-              />
-            </div>
           </div>
         ) : null}
       </main>
+
+      {/* Floating AI Assistant */}
+      <FloatingAIAssistant 
+        project={selectedProject} 
+        projectHealth={projectHealth}
+      />
 
       {/* Detail Modal */}
       <DetailModal

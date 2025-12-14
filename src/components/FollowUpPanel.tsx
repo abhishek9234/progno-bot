@@ -1,8 +1,11 @@
-import { FollowUpMetrics } from "@/types/project";
+import { useState } from "react";
+import { FollowUpMetrics, FollowUpItem } from "@/types/project";
 import { MetricCard } from "./MetricCard";
 import { Badge } from "@/components/ui/badge";
-import { Bell, ChevronRight, Clock, AlertCircle, CalendarClock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, ChevronRight, Clock, AlertCircle, CalendarClock, Mail, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotificationDialog } from "./NotificationDialog";
 
 interface FollowUpPanelProps {
   metrics: FollowUpMetrics;
@@ -16,10 +19,19 @@ const urgencyConfig = {
 };
 
 export function FollowUpPanel({ metrics, onViewDetails }: FollowUpPanelProps) {
+  const [selectedItem, setSelectedItem] = useState<FollowUpItem | null>(null);
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  
   const totalItems = metrics.items.length;
   const status = metrics.immediateCount > 0 ? 'critical' 
     : metrics.todayCount > 0 ? 'warning' 
     : 'healthy';
+
+  const handleNotify = (item: FollowUpItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedItem(item);
+    setShowNotificationDialog(true);
+  };
 
   return (
     <MetricCard 
@@ -73,11 +85,22 @@ export function FollowUpPanel({ metrics, onViewDetails }: FollowUpPanelProps) {
                       {item.issue.fields.summary}
                     </p>
                     <p className="text-xs text-muted-foreground">{item.reason}</p>
-                    {item.issue.fields.assignee && (
-                      <p className="text-xs text-muted-foreground/60 mt-1">
-                        Assigned: {item.issue.fields.assignee.displayName}
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between mt-2">
+                      {item.issue.fields.assignee && (
+                        <p className="text-xs text-muted-foreground/60">
+                          Assigned: {item.issue.fields.assignee.displayName}
+                        </p>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1"
+                        onClick={(e) => handleNotify(item, e)}
+                      >
+                        <Mail className="h-3 w-3" />
+                        Notify
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -99,6 +122,16 @@ export function FollowUpPanel({ metrics, onViewDetails }: FollowUpPanelProps) {
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
+
+      <NotificationDialog
+        open={showNotificationDialog}
+        onClose={() => {
+          setShowNotificationDialog(false);
+          setSelectedItem(null);
+        }}
+        type="followup"
+        item={selectedItem}
+      />
     </MetricCard>
   );
 }

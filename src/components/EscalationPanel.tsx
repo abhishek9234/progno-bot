@@ -1,8 +1,11 @@
-import { EscalationMetrics } from "@/types/project";
+import { useState } from "react";
+import { EscalationMetrics, EscalationItem } from "@/types/project";
 import { MetricCard } from "./MetricCard";
 import { Badge } from "@/components/ui/badge";
-import { AlertOctagon, ChevronRight, ArrowUpCircle, History } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertOctagon, ChevronRight, ArrowUpCircle, History, Mail, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotificationDialog } from "./NotificationDialog";
 
 interface EscalationPanelProps {
   metrics: EscalationMetrics;
@@ -12,9 +15,18 @@ interface EscalationPanelProps {
 const escalationLevelLabels = ['None', 'Level 1', 'Level 2', 'Level 3', 'Critical'];
 
 export function EscalationPanel({ metrics, onViewDetails }: EscalationPanelProps) {
+  const [selectedItem, setSelectedItem] = useState<EscalationItem | null>(null);
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  
   const status = metrics.level === 0 ? 'healthy' 
     : metrics.level <= 1 ? 'warning' 
     : 'critical';
+
+  const handleEscalate = (item: EscalationItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedItem(item);
+    setShowNotificationDialog(true);
+  };
 
   return (
     <MetricCard 
@@ -98,9 +110,20 @@ export function EscalationPanel({ metrics, onViewDetails }: EscalationPanelProps
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">{item.reason}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">
-                      {new Date(item.escalatedAt).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-muted-foreground/60">
+                        {new Date(item.escalatedAt).toLocaleDateString()}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-xs gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20"
+                        onClick={(e) => handleEscalate(item, e)}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        Escalate
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -117,6 +140,16 @@ export function EscalationPanel({ metrics, onViewDetails }: EscalationPanelProps
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
+
+      <NotificationDialog
+        open={showNotificationDialog}
+        onClose={() => {
+          setShowNotificationDialog(false);
+          setSelectedItem(null);
+        }}
+        type="escalation"
+        item={selectedItem}
+      />
     </MetricCard>
   );
 }
