@@ -293,38 +293,44 @@ export function useJiraData() {
 
     const followUpItems: FollowUpItem[] = [];
 
+    // In Progress items with due dates within 48 hours (expanded range for Jira)
     inProgressStories.forEach(task => {
       if (task.fields.duedate) {
         const dueDate = new Date(task.fields.duedate);
         const hoursDiff = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
         
-        if (hoursDiff <= 24 && hoursDiff > 0) {
+        if (hoursDiff > 0 && hoursDiff <= 48) {
           followUpItems.push({
             issue: task,
-            reason: 'Due within 24 hours',
-            dueIn: `${Math.round(hoursDiff)} hours`,
-            urgency: hoursDiff <= 4 ? 'immediate' : 'today',
+            reason: hoursDiff <= 8 ? 'URGENT: Due soon - Immediate attention required' : 'Due within 48 hours',
+            dueIn: hoursDiff <= 24 ? `${Math.round(hoursDiff)} hours` : `${Math.round(hoursDiff / 24)} days`,
+            urgency: hoursDiff <= 8 ? 'immediate' : hoursDiff <= 24 ? 'today' : 'upcoming',
             history: []
           });
         }
       }
     });
 
+    // On hold items always need follow-up
     const onHoldItems = stories.filter(i => 
       i.fields.status.name.toLowerCase().includes('hold') ||
-      i.fields.status.name.toLowerCase().includes('waiting')
+      i.fields.status.name.toLowerCase().includes('waiting') ||
+      i.fields.status.name.toLowerCase().includes('blocked')
     );
     
     onHoldItems.forEach(task => {
-      followUpItems.push({
-        issue: task,
-        reason: 'Status: On Hold - needs review',
-        dueIn: 'ASAP',
-        urgency: 'today',
-        history: []
-      });
+      if (!followUpItems.find(f => f.issue.key === task.key)) {
+        followUpItems.push({
+          issue: task,
+          reason: `Status: ${task.fields.status.name} - needs review`,
+          dueIn: 'ASAP',
+          urgency: 'today',
+          history: []
+        });
+      }
     });
 
+    // Upcoming deadlines within 3 days
     upcomingDeadlines.forEach(task => {
       if (!followUpItems.find(f => f.issue.key === task.key)) {
         const dueDate = new Date(task.fields.duedate!);

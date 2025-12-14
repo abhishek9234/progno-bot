@@ -13,6 +13,10 @@ const daysFromNow = (days: number) => new Date(now.getTime() + days * 24 * 60 * 
 const hoursFromNow = (hours: number) => new Date(now.getTime() + hours * 60 * 60 * 1000).toISOString();
 const hoursAgo = (hours: number) => new Date(now.getTime() - hours * 60 * 60 * 1000).toISOString();
 
+// Two assignees for demo data
+const assignee1 = { displayName: "Abhishek Kumar", emailAddress: "abhishek9234@gmail.com" };
+const assignee2 = { displayName: "SHAILESH JORE", emailAddress: "shaileshjore1@gmail.com" };
+
 export const demoIssues: JiraIssue[] = [
   // ============ EPICS ============
   {
@@ -22,7 +26,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Epic", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee1,
       created: daysAgo(90), updated: daysAgo(10),
       customfield_10016: 55,
     }
@@ -34,7 +38,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Epic", subtask: false },
-      assignee: { displayName: "Sarah Johnson", emailAddress: "sarah@example.com" },
+      assignee: assignee2,
       created: daysAgo(60), updated: daysAgo(1),
       customfield_10016: 75,
     }
@@ -46,7 +50,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Epic", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee1,
       created: daysAgo(45), updated: daysAgo(2),
       customfield_10016: 45,
     }
@@ -58,6 +62,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Epic", subtask: false },
+      assignee: assignee2,
       created: daysAgo(30), updated: daysAgo(5),
       customfield_10016: 40,
     }
@@ -71,7 +76,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(15),
       created: daysAgo(40), updated: daysAgo(12),
       customfield_10016: 8,
@@ -85,7 +90,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(12),
       created: daysAgo(35), updated: daysAgo(10),
       customfield_10016: 13,
@@ -99,7 +104,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(8),
       created: daysAgo(25), updated: daysAgo(7),
       customfield_10016: 5,
@@ -112,7 +117,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(5),
       created: daysAgo(20), updated: daysAgo(4),
       customfield_10016: 8,
@@ -127,7 +132,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Sarah Johnson", emailAddress: "sarah@example.com" },
+      assignee: assignee1,
       duedate: hoursFromNow(3), // Due in 3 hours - IMMEDIATE
       created: daysAgo(12), updated: hoursAgo(2),
       customfield_10016: 8,
@@ -141,7 +146,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Mike Wilson", emailAddress: "mike@example.com" },
+      assignee: assignee2,
       duedate: hoursFromNow(8), // Due in 8 hours - IMMEDIATE
       created: daysAgo(10), updated: hoursAgo(1),
       customfield_10016: 5,
@@ -155,7 +160,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee1,
       duedate: hoursFromNow(18), // Due in 18 hours - TODAY
       created: daysAgo(8), updated: hoursAgo(4),
       customfield_10016: 3,
@@ -168,7 +173,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Sarah Johnson", emailAddress: "sarah@example.com" },
+      assignee: assignee2,
       duedate: daysFromNow(2), // Due in 2 days - UPCOMING
       created: daysAgo(5), updated: daysAgo(1),
       customfield_10016: 3,
@@ -183,7 +188,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Blocked", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(5), // 5 days overdue
       created: daysAgo(20), updated: daysAgo(3),
       customfield_10016: 13,
@@ -198,7 +203,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Blocked", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(3), // 3 days overdue
       created: daysAgo(18), updated: daysAgo(2),
       customfield_10016: 8,
@@ -213,7 +218,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Blocked", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Mike Wilson", emailAddress: "mike@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(7), // 7 days overdue
       created: daysAgo(25), updated: daysAgo(5),
       customfield_10016: 8,
@@ -227,7 +232,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Blocked", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Sarah Johnson", emailAddress: "sarah@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(2),
       created: daysAgo(15), updated: daysAgo(1),
       customfield_10016: 5,
@@ -243,7 +248,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Mike Wilson", emailAddress: "mike@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(15), // 15 days overdue - CRITICAL ESCALATION
       created: daysAgo(45), updated: daysAgo(3),
       customfield_10016: 8,
@@ -256,7 +261,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Review", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(12), // 12 days overdue - ESCALATION LEVEL 2
       created: daysAgo(35), updated: daysAgo(4),
       customfield_10016: 5,
@@ -269,7 +274,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Low", id: "4" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(10), // 10 days overdue - ESCALATION LEVEL 2
       created: daysAgo(30), updated: daysAgo(2),
       customfield_10016: 5,
@@ -282,7 +287,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(8), // 8 days overdue - ESCALATION LEVEL 1
       created: daysAgo(28), updated: daysAgo(1),
       customfield_10016: 5,
@@ -297,7 +302,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "On Hold", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Low", id: "4" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee1,
       duedate: daysFromNow(10),
       created: daysAgo(25), updated: daysAgo(8),
       customfield_10016: 3,
@@ -310,7 +315,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Waiting for Approval", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
-      assignee: { displayName: "Sarah Johnson", emailAddress: "sarah@example.com" },
+      assignee: assignee2,
       duedate: daysFromNow(5),
       created: daysAgo(20), updated: daysAgo(10),
       customfield_10016: 8,
@@ -323,6 +328,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "On Hold", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Low", id: "4" },
       issuetype: { name: "Story", subtask: false },
+      assignee: assignee1,
       duedate: daysFromNow(15),
       created: daysAgo(18), updated: daysAgo(12),
       customfield_10016: 5,
@@ -337,6 +343,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
+      assignee: assignee2,
       duedate: daysFromNow(14),
       created: daysAgo(7), updated: daysAgo(7),
       customfield_10016: 8,
@@ -350,6 +357,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Story", subtask: false },
+      assignee: assignee1,
       duedate: daysFromNow(14),
       created: daysAgo(7), updated: daysAgo(7),
       customfield_10016: 5,
@@ -363,6 +371,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Story", subtask: false },
+      assignee: assignee2,
       duedate: daysFromNow(21),
       created: daysAgo(5), updated: daysAgo(5),
       customfield_10016: 8,
@@ -378,7 +387,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Bug", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee1,
       duedate: hoursFromNow(2), // IMMEDIATE - Critical bug
       created: daysAgo(1), updated: hoursAgo(1),
       customfield_10016: 3,
@@ -391,7 +400,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Bug", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee2,
       duedate: hoursFromNow(6), // IMMEDIATE
       created: daysAgo(2), updated: hoursAgo(3),
       customfield_10016: 5,
@@ -404,6 +413,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Bug", subtask: false },
+      assignee: assignee1,
       duedate: daysFromNow(1),
       created: daysAgo(1), updated: daysAgo(1),
       customfield_10016: 3,
@@ -416,7 +426,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Medium", id: "3" },
       issuetype: { name: "Bug", subtask: false },
-      assignee: { displayName: "Emily Chen", emailAddress: "emily@example.com" },
+      assignee: assignee2,
       duedate: daysAgo(4), // 4 days overdue
       created: daysAgo(10), updated: daysAgo(2),
       customfield_10016: 2,
@@ -429,7 +439,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Blocked", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Bug", subtask: false },
-      assignee: { displayName: "Mike Wilson", emailAddress: "mike@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(6), // 6 days overdue and blocked
       created: daysAgo(14), updated: daysAgo(4),
       customfield_10016: 3,
@@ -445,7 +455,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "Done", statusCategory: { key: "done", name: "Done" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Task", subtask: false },
-      assignee: { displayName: "Alex Kumar", emailAddress: "alex@example.com" },
+      assignee: assignee1,
       duedate: daysAgo(7),
       created: daysAgo(15), updated: daysAgo(6),
       customfield_10016: 5,
@@ -458,7 +468,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "In Progress", statusCategory: { key: "indeterminate", name: "In Progress" } },
       priority: { name: "Highest", id: "1" },
       issuetype: { name: "Task", subtask: false },
-      assignee: { displayName: "John Smith", emailAddress: "john@example.com" },
+      assignee: assignee2,
       duedate: hoursFromNow(12), // TODAY
       created: daysAgo(5), updated: hoursAgo(2),
       customfield_10016: 8,
@@ -471,6 +481,7 @@ export const demoIssues: JiraIssue[] = [
       status: { name: "To Do", statusCategory: { key: "new", name: "To Do" } },
       priority: { name: "High", id: "2" },
       issuetype: { name: "Task", subtask: false },
+      assignee: assignee1,
       duedate: daysFromNow(7),
       created: daysAgo(3), updated: daysAgo(3),
       customfield_10016: 13,

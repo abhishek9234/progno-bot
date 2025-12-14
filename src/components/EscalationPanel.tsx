@@ -34,8 +34,9 @@ export function EscalationPanel({ metrics, onViewDetails }: EscalationPanelProps
       icon={AlertOctagon} 
       status={status}
       onClick={onViewDetails}
+      className="h-full flex flex-col"
     >
-      <div className="space-y-4">
+      <div className="flex flex-col flex-1 space-y-4">
         {/* Escalation Level Indicator */}
         <div className={`p-4 rounded-lg border ${
           metrics.level === 0 ? 'bg-success/10 border-success/30' 
@@ -87,49 +88,51 @@ export function EscalationPanel({ metrics, onViewDetails }: EscalationPanelProps
           </div>
         </div>
 
-        {/* Recent Escalations */}
-        {metrics.recentEscalations.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <History className="h-4 w-4" />
-              Recent Escalations
-            </p>
-            <ScrollArea className="h-24">
-              <div className="space-y-2">
-                {metrics.recentEscalations.slice(0, 3).map((item, idx) => (
-                  <div 
-                    key={idx}
-                    className="p-2 rounded bg-secondary/50 border border-border/30 text-sm"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <Badge variant="outline" className="font-mono text-xs">
-                        {item.issue.key}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
-                        L{item.level}
-                      </Badge>
+        {/* Recent Escalations - grows to fill space */}
+        <div className="flex-1 min-h-0">
+          {metrics.recentEscalations.length > 0 && (
+            <div className="space-y-2 h-full">
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Recent Escalations
+              </p>
+              <ScrollArea className="h-[calc(100%-24px)]">
+                <div className="space-y-2">
+                  {metrics.recentEscalations.slice(0, 4).map((item, idx) => (
+                    <div 
+                      key={idx}
+                      className="p-2 rounded bg-secondary/50 border border-border/30 text-sm"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {item.issue.key}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/30">
+                          L{item.level}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{item.reason}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-muted-foreground/60">
+                          {new Date(item.escalatedAt).toLocaleDateString()}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 text-xs gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20"
+                          onClick={(e) => handleEscalate(item, e)}
+                        >
+                          <AlertTriangle className="h-3 w-3" />
+                          Escalate
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{item.reason}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-muted-foreground/60">
-                        {new Date(item.escalatedAt).toLocaleDateString()}
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-6 text-xs gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20"
-                        onClick={(e) => handleEscalate(item, e)}
-                      >
-                        <AlertTriangle className="h-3 w-3" />
-                        Escalate
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        )}
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
 
         {/* View Details Link */}
         <button 

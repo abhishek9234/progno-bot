@@ -20,8 +20,9 @@ export function CostPanel({ metrics, onViewDetails }: CostPanelProps) {
       icon={DollarSign} 
       status={status}
       onClick={onViewDetails}
+      className="h-full flex flex-col"
     >
-      <div className="space-y-4">
+      <div className="flex flex-col flex-1 space-y-4">
         {/* Cost Overview */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 rounded-lg bg-secondary/50 border border-border/30">
@@ -71,32 +72,34 @@ export function CostPanel({ metrics, onViewDetails }: CostPanelProps) {
           </Badge>
         </div>
 
-        {/* Overdue Cost */}
-        {metrics.overdueCost > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-warning flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Overdue Impact: €{metrics.overdueCost.toLocaleString()}
-            </p>
-            <ScrollArea className="h-20">
-              <div className="space-y-1">
-                {metrics.delayedTasks.slice(0, 2).map((task) => (
-                  <div 
-                    key={task.id}
-                    className="flex items-center justify-between p-2 rounded bg-warning/5 border border-warning/20 text-sm"
-                  >
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {task.key}
-                    </Badge>
-                    <span className="text-muted-foreground truncate ml-2">
-                      {task.fields.summary.slice(0, 30)}...
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        )}
+        {/* Overdue Cost - grows to fill space */}
+        <div className="flex-1 min-h-0">
+          {metrics.overdueCost > 0 && (
+            <div className="space-y-2 h-full">
+              <p className="text-sm font-medium text-warning flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Overdue Impact: €{metrics.overdueCost.toLocaleString()}
+              </p>
+              <ScrollArea className="h-[calc(100%-24px)]">
+                <div className="space-y-1">
+                  {metrics.delayedTasks.slice(0, 3).map((task) => (
+                    <div 
+                      key={task.id}
+                      className="flex items-center justify-between p-2 rounded bg-warning/5 border border-warning/20 text-sm"
+                    >
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {task.key}
+                      </Badge>
+                      <span className="text-muted-foreground truncate ml-2">
+                        {task.fields.summary.slice(0, 30)}...
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
 
         {/* Rate Info */}
         <p className="text-xs text-muted-foreground">
