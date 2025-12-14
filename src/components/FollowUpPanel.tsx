@@ -1,24 +1,31 @@
-import { FollowUpMetrics } from "@/types/project";
+import { useState } from "react";
+import { FollowUpMetrics, FollowUpItem } from "@/types/project";
 import { MetricCard } from "./MetricCard";
 import { Badge } from "@/components/ui/badge";
-import { Bell, ChevronRight, Clock, AlertCircle, CalendarClock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, ChevronRight, Clock, AlertCircle, CalendarClock, Send } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { FollowUpActionDialog } from "./FollowUpActionDialog";
+ 
 interface FollowUpPanelProps {
   metrics: FollowUpMetrics;
   onViewDetails: () => void;
+  teamsWebhookUrl?: string;
 }
-
+ 
 const urgencyConfig = {
   immediate: { icon: AlertCircle, color: 'text-destructive', bg: 'bg-destructive/10', label: 'Immediate' },
   today: { icon: Clock, color: 'text-warning', bg: 'bg-warning/10', label: 'Today' },
   upcoming: { icon: CalendarClock, color: 'text-primary', bg: 'bg-primary/10', label: 'Upcoming' }
 };
-
-export function FollowUpPanel({ metrics, onViewDetails }: FollowUpPanelProps) {
+ 
+export function FollowUpPanel({ metrics, onViewDetails, teamsWebhookUrl }: FollowUpPanelProps) {
+  const [selectedItem, setSelectedItem] = useState<FollowUpItem | null>(null);
+  const [showActionDialog, setShowActionDialog] = useState(false);
+ 
   const totalItems = metrics.items.length;
-  const status = metrics.immediateCount > 0 ? 'critical' 
-    : metrics.todayCount > 0 ? 'warning' 
+  const status = metrics.immediateCount > 0 ? 'critical'
+    : metrics.todayCount > 0 ? 'warning'
     : 'healthy';
 //new 
   return (
