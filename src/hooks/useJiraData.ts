@@ -166,13 +166,15 @@ export function useJiraData() {
       scheduleVariance
     };
 
-    const totalSP = stories.reduce((sum, i) => sum + (i.fields.customfield_10016 || 0), 0);
-    const completedSP = completedStories.reduce((sum, i) => sum + (i.fields.customfield_10016 || 0), 0);
+    // Default to 3 SP per story if no story points set
+    const getStoryPoints = (issue: JiraIssue) => issue.fields.customfield_10016 || 3;
+    const totalSP = stories.reduce((sum, i) => sum + getStoryPoints(i), 0);
+    const completedSP = completedStories.reduce((sum, i) => sum + getStoryPoints(i), 0);
     const remainingSP = totalSP - completedSP;
     const estimatedCost = totalSP * HOURS_PER_SP * HOURLY_RATE;
     const actualCost = completedSP * HOURS_PER_SP * HOURLY_RATE;
     
-    const overdueSP = delayedTasks.reduce((sum, i) => sum + (i.fields.customfield_10016 || 0), 0);
+    const overdueSP = delayedTasks.reduce((sum, i) => sum + getStoryPoints(i), 0);
     const overdueCost = overdueSP * HOURS_PER_SP * HOURLY_RATE;
     
     const costVariance = estimatedCost > 0 
@@ -293,30 +295,44 @@ export function useJiraData() {
 
     const followUpItems: FollowUpItem[] = [];
 
-    // In Progress items with due dates within 48 hours (expanded range for Jira)
+    // In Progress items with due dates - check for overdue or upcoming (within 72 hours)
     inProgressStories.forEach(task => {
       if (task.fields.duedate) {
         const dueDate = new Date(task.fields.duedate);
         const hoursDiff = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
         
-        if (hoursDiff > 0 && hoursDiff <= 48) {
+        // Include overdue items (negative hoursDiff) as immediate
+        if (hoursDiff <= 72) {
+          const isOverdue = hoursDiff < 0;
           followUpItems.push({
             issue: task,
-            reason: hoursDiff <= 8 ? 'URGENT: Due soon - Immediate attention required' : 'Due within 48 hours',
-            dueIn: hoursDiff <= 24 ? `${Math.round(hoursDiff)} hours` : `${Math.round(hoursDiff / 24)} days`,
-            urgency: hoursDiff <= 8 ? 'immediate' : hoursDiff <= 24 ? 'today' : 'upcoming',
+            reason: isOverdue 
+              ? `OVERDUE: Was due ${Math.abs(Math.round(hoursDiff / 24))} days ago` 
+              : hoursDiff <= 8 
+                ? 'URGENT: Due soon - Immediate attention required' 
+                : 'Due within 72 hours',
+            dueIn: isOverdue 
+              ? 'OVERDUE' 
+              : hoursDiff <= 24 
+                ? `${Math.round(hoursDiff)} hours` 
+                : `${Math.round(hoursDiff / 24)} days`,
+            urgency: isOverdue || hoursDiff <= 8 ? 'immediate' : hoursDiff <= 24 ? 'today' : 'upcoming',
             history: []
           });
         }
       }
     });
 
-    // On hold items always need follow-up
-    const onHoldItems = stories.filter(i => 
-      i.fields.status.name.toLowerCase().includes('hold') ||
-      i.fields.status.name.toLowerCase().includes('waiting') ||
-      i.fields.status.name.toLowerCase().includes('blocked')
-    );
+    // On hold items always need follow-up - match more status patterns
+    const onHoldItems = stories.filter(i => {
+      const statusName = i.fields.status.name.toLowerCase();
+      const statusKey = i.fields.status.statusCategory?.key;
+      return statusName.includes('hold') ||
+        statusName.includes('waiting') ||
+        statusName.includes('blocked') ||
+        statusName.includes('backlog') ||
+        statusKey === 'new'; // Backlog items in Jira often have 'new' status category
+    });
     
     onHoldItems.forEach(task => {
       if (!followUpItems.find(f => f.issue.key === task.key)) {
