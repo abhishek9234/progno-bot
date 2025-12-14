@@ -4,7 +4,7 @@ export interface JiraProject {
   name: string;
   projectTypeKey: string;
 }
- 
+
 export interface JiraIssue {
   id: string;
   key: string;
@@ -33,7 +33,7 @@ export interface JiraIssue {
     created: string;
     updated: string;
     storyPoints?: number;
-    customfield_10016?: number;
+    customfield_10016?: number; // Story points field
     parent?: {
       key: string;
       fields: {
@@ -50,7 +50,7 @@ export interface JiraIssue {
     };
   };
 }
- 
+
 export interface ScheduleMetrics {
   totalEpics: number;
   completedEpics: number;
@@ -63,7 +63,7 @@ export interface ScheduleMetrics {
   completionPercentage: number;
   scheduleVariance: number;
 }
- 
+
 export interface CostMetrics {
   hourlyRate: number;
   totalStoryPoints: number;
@@ -75,7 +75,7 @@ export interface CostMetrics {
   overdueCost: number;
   delayedTasks: JiraIssue[];
 }
- 
+
 export interface RiskMetrics {
   level: 'low' | 'medium' | 'high' | 'critical';
   score: number;
@@ -83,33 +83,29 @@ export interface RiskMetrics {
   highPriorityBlocked: JiraIssue[];
   overdueTasks: JiraIssue[];
 }
- 
+
 export interface RiskFactor {
   name: string;
   severity: 'low' | 'medium' | 'high';
   description: string;
   impactedTasks: number;
 }
- 
+
 export interface EscalationMetrics {
   level: number;
   escalatedItems: EscalationItem[];
   pendingEscalations: JiraIssue[];
   recentEscalations: EscalationItem[];
 }
- 
+
 export interface EscalationItem {
   issue: JiraIssue;
   level: number;
   reason: string;
   escalatedAt: string;
   previousFollowUps: number;
-  onHoldBy?: {
-    displayName: string;
-    emailAddress: string;
-  };
 }
- 
+
 export interface FollowUpItem {
   issue: JiraIssue;
   reason: string;
@@ -117,20 +113,20 @@ export interface FollowUpItem {
   urgency: 'immediate' | 'today' | 'upcoming';
   history: FollowUpHistory[];
 }
- 
+
 export interface FollowUpHistory {
   date: string;
   action: string;
   outcome: string;
 }
- 
+
 export interface FollowUpMetrics {
   items: FollowUpItem[];
   immediateCount: number;
   todayCount: number;
   upcomingCount: number;
 }
- 
+
 export interface ProjectHealth {
   overall: 'healthy' | 'warning' | 'critical';
   schedule: ScheduleMetrics;
@@ -139,26 +135,9 @@ export interface ProjectHealth {
   escalation: EscalationMetrics;
   followUp: FollowUpMetrics;
 }
- 
+
 export interface AIMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-}
- 
-// Manager configuration
-export const MANAGER_CONFIG = {
-  name: "Basawaraj Biradar",
-  email: "b.biradar27@gmail.com"
-};
- 
-// Follow-up action types
-export type FollowUpActionType = 'teams' | 'email';
- 
-// Escalation notification recipients
-export interface EscalationRecipients {
-  ticketOwner: { name: string; email: string };
-  assignee: { name: string; email: string };
-  manager: { name: string; email: string };
-  onHoldBy?: { name: string; email: string };
 }
