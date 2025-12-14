@@ -70,8 +70,11 @@ export function NotificationDialog({ open, onClose, type, item }: NotificationDi
     return recipients;
   };
 
-  const recipients = type === 'escalation' ? getEscalationRecipients() : 
+  // Filter out recipients without valid email addresses
+  const allRecipients = type === 'escalation' ? getEscalationRecipients() : 
     assignee ? [{ name: assignee.displayName, email: assignee.emailAddress, role: 'Assignee' }] : [];
+  
+  const recipients = allRecipients.filter(r => r.email && r.email.trim() !== '');
 
   const handleSend = async () => {
     setIsLoading(true);
