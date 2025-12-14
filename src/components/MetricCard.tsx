@@ -51,7 +51,7 @@ export function MetricCard({
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col flex-1">
         {children}
       </CardContent>
     </Card>
