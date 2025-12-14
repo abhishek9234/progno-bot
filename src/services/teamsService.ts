@@ -1,278 +1,148 @@
-// Email Service using SendGrid (Azure-compatible)
-
-// For Azure WebApp deployment, set SENDGRID_API_KEY in App Settings
+// Microsoft Teams Webhook Integration Service
  
-interface EmailMessage {
-
-  to: string[];
-
-  subject: string;
-
+interface TeamsMessage {
+  title: string;
   text: string;
-
-  html?: string;
-
+  themeColor?: string;
+  sections?: TeamsSection[];
 }
  
-interface SendGridPayload {
-
-  personalizations: { to: { email: string }[] }[];
-
-  from: { email: string; name: string };
-
-  subject: string;
-
-  content: { type: string; value: string }[];
-
+interface TeamsSection {
+  activityTitle?: string;
+  activitySubtitle?: string;
+  activityText?: string;
+  facts?: { name: string; value: string }[];
 }
  
-// Store configuration - in production, these would come from environment/settings
-
-let emailConfig = {
-
-  apiKey: "",
-
-  fromEmail: "noreply@yourapp.com",
-
-  fromName: "Project Manager Bot"
-
-};
+interface TeamsCardPayload {
+  "@type": "MessageCard";
+  "@context": "http://schema.org/extensions";
+  themeColor: string;
+  summary: string;
+  title: string;
+  sections: {
+    activityTitle?: string;
+    activitySubtitle?: string;
+    activityText?: string;
+    facts?: { name: string; value: string }[];
+    markdown: boolean;
+  }[];
+}
  
-export const configureEmailService = (config: Partial<typeof emailConfig>) => {
-
-  emailConfig = { ...emailConfig, ...config };
-
-};
- 
-export const getEmailConfig = () => ({ ...emailConfig });
- 
-export const sendEmail = async (
-
-  message: EmailMessage
-
+export const sendTeamsMessage = async (
+  webhookUrl: string,
+  message: TeamsMessage
 ): Promise<{ success: boolean; error?: string }> => {
-
-  if (!emailConfig.apiKey) {
-
-    console.warn("SendGrid API key not configured - simulating email send");
-
-    // Simulate success for demo purposes when API key not set
-
-    console.log("Email would be sent to:", message.to);
-
-    console.log("Subject:", message.subject);
-
-    console.log("Content:", message.text);
-
-    return { success: true };
-
+  if (!webhookUrl) {
+    return { success: false, error: "Teams webhook URL is not configured" };
   }
  
-  const payload: SendGridPayload = {
-
-    personalizations: [
-
-      {
-
-        to: message.to.map(email => ({ email }))
-
-      }
-
-    ],
-
-    from: {
-
-      email: emailConfig.fromEmail,
-
-      name: emailConfig.fromName
-
-    },
-
-    subject: message.subject,
-
-    content: [
-
-      { type: "text/plain", value: message.text },
-
-      ...(message.html ? [{ type: "text/html", value: message.html }] : [])
-
-    ]
-
+  const payload: TeamsCardPayload = {
+    "@type": "MessageCard",
+    "@context": "http://schema.org/extensions",
+    themeColor: message.themeColor || "0076D7",
+    summary: message.title,
+    title: message.title,
+    sections: message.sections?.map(section => ({
+      ...section,
+      markdown: true
+    })) || [{
+      activityTitle: message.title,
+      activityText: message.text,
+      markdown: true
+    }]
   };
  
   try {
-
-    console.log("Sending email via SendGrid:", message.to);
-
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-
+    console.log("Sending Teams message to webhook:", webhookUrl);
+   
+    const response = await fetch(webhookUrl, {
       method: "POST",
-
       headers: {
-
-        "Authorization": `Bearer ${emailConfig.apiKey}`,
-
         "Content-Type": "application/json",
-
       },
-
       body: JSON.stringify(payload),
-
     });
  
     if (!response.ok) {
-
       const errorText = await response.text();
-
-      console.error("SendGrid error:", errorText);
-
-      return { success: false, error: `SendGrid error: ${response.status}` };
-
+      console.error("Teams webhook error:", errorText);
+      return { success: false, error: `Teams API error: ${response.status}` };
     }
  
-    console.log("Email sent successfully");
-
+    console.log("Teams message sent successfully");
     return { success: true };
-
   } catch (error) {
-
-    console.error("Failed to send email:", error);
-
-    return { 
-
-      success: false, 
-
-      error: error instanceof Error ? error.message : "Unknown error" 
-
+    console.error("Failed to send Teams message:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
     };
-
   }
-
 };
  
-export const sendFollowUpEmail = async (
-
-  recipientEmail: string,
-
-  recipientName: string,
-
+export const sendFollowUpToTeams = async (
+  webhookUrl: string,
   itemTitle: string,
-
-  message: string,
-
-  priority: string
-
-): Promise<{ success: boolean; error?: string }> => {
-
-  const html = `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-<div style="background-color: #0076D7; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-<h1 style="margin: 0;">📋 Follow-up Required</h1>
-</div>
-<div style="padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 0 0 8px 8px;">
-<h2 style="color: #333; margin-top: 0;">${itemTitle}</h2>
-<p><strong>Priority:</strong> <span style="color: ${priority === 'high' ? '#FF0000' : priority === 'medium' ? '#FFA500' : '#008000'}">${priority}</span></p>
-<p><strong>Message:</strong></p>
-<div style="background-color: white; padding: 15px; border-left: 4px solid #0076D7; margin: 10px 0;">
-
-          ${message}
-</div>
-<p style="color: #666; font-size: 12px; margin-top: 20px;">
-
-          This is an automated follow-up notification from Project Manager Bot.
-</p>
-</div>
-</div>
-
-  `;
- 
-  return sendEmail({
-
-    to: [recipientEmail],
-
-    subject: `[Follow-up] ${itemTitle}`,
-
-    text: `Follow-up for ${recipientName}: ${itemTitle}\n\nPriority: ${priority}\n\nMessage: ${message}`,
-
-    html
-
-  });
-
-};
- 
-export const sendEscalationEmail = async (
-
-  recipients: { email: string; name: string; role: string }[],
-
-  itemTitle: string,
-
   assignee: string,
-
-  reason: string,
-
-  isOnHold: boolean,
-
-  onHoldBy?: string
-
+  message: string,
+  priority: string
 ): Promise<{ success: boolean; error?: string }> => {
-
-  const recipientList = recipients.map(r => `${r.name} (${r.role})`).join(", ");
-
-  const html = `
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-<div style="background-color: #FF0000; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-<h1 style="margin: 0;">🚨 Escalation Alert</h1>
-</div>
-<div style="padding: 20px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 0 0 8px 8px;">
-<h2 style="color: #333; margin-top: 0;">${itemTitle}</h2>
-<table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-<tr>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Assignee:</strong></td>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;">${assignee}</td>
-</tr>
-<tr>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Status:</strong></td>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;">${isOnHold ? '🔴 On Hold' : '🟢 Active'}</td>
-</tr>
-
-          ${isOnHold && onHoldBy ? `
-<tr>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>On Hold By:</strong></td>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;">${onHoldBy}</td>
-</tr>
-
-          ` : ''}
-<tr>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Recipients:</strong></td>
-<td style="padding: 8px; border-bottom: 1px solid #ddd;">${recipientList}</td>
-</tr>
-</table>
-<p><strong>Reason for Escalation:</strong></p>
-<div style="background-color: white; padding: 15px; border-left: 4px solid #FF0000; margin: 10px 0;">
-
-          ${reason}
-</div>
-<p style="color: #666; font-size: 12px; margin-top: 20px;">
-
-          This is an automated escalation notification from Project Manager Bot.
-</p>
-</div>
-</div>
-
-  `;
+  const priorityColors: Record<string, string> = {
+    high: "FF0000",
+    medium: "FFA500",
+    low: "008000",
+  };
  
-  return sendEmail({
-
-    to: recipients.map(r => r.email),
-
-    subject: `[ESCALATION] ${itemTitle}`,
-
-    text: `Escalation Alert: ${itemTitle}\n\nAssignee: ${assignee}\nStatus: ${isOnHold ? 'On Hold' : 'Active'}\n${isOnHold && onHoldBy ? `On Hold By: ${onHoldBy}\n` : ''}\nReason: ${reason}`,
-
-    html
-
+  return sendTeamsMessage(webhookUrl, {
+    title: "📋 Follow-up Required",
+    text: message,
+    themeColor: priorityColors[priority.toLowerCase()] || "0076D7",
+    sections: [
+      {
+        activityTitle: itemTitle,
+        activitySubtitle: `Assigned to: ${assignee}`,
+        activityText: message,
+        facts: [
+          { name: "Priority", value: priority },
+          { name: "Status", value: "Follow-up Sent" },
+          { name: "Sent At", value: new Date().toLocaleString() }
+        ]
+      }
+    ]
   });
-
 };
-
  
+export const sendEscalationToTeams = async (
+  webhookUrl: string,
+  itemTitle: string,
+  assignee: string,
+  manager: string,
+  reason: string,
+  isOnHold: boolean
+): Promise<{ success: boolean; error?: string }> => {
+  const facts = [
+    { name: "Assignee", value: assignee },
+    { name: "Manager", value: manager },
+    { name: "Status", value: isOnHold ? "On Hold" : "Active" },
+    { name: "Escalated At", value: new Date().toLocaleString() }
+  ];
+ 
+  if (isOnHold) {
+    facts.push({ name: "Blocked By", value: "On Hold Status" });
+  }
+ 
+  return sendTeamsMessage(webhookUrl, {
+    title: "🚨 Escalation Alert",
+    text: reason,
+    themeColor: "FF0000",
+    sections: [
+      {
+        activityTitle: itemTitle,
+        activitySubtitle: `Escalation Notification`,
+        activityText: reason,
+        facts
+      }
+    ]
+  });
+};
