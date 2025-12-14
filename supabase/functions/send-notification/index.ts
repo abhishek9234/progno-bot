@@ -107,11 +107,21 @@ serve(async (req) => {
     `.trim();
 
     if (channel === 'email') {
-      console.log('Sending email to:', recipients.map(r => r.email).join(', '));
+      // Filter out recipients without valid email addresses
+      const validRecipients = recipients.filter(r => r.email && r.email.trim() !== '');
+      
+      if (validRecipients.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No valid email recipients found' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('Sending email to:', validRecipients.map(r => r.email).join(', '));
       
       const emailResponse = await resend.emails.send({
         from: "PM Assistant <onboarding@resend.dev>",
-        to: recipients.map(r => r.email),
+        to: validRecipients.map(r => r.email),
         subject: subject,
         html: htmlContent,
       });
