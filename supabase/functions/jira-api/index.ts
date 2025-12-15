@@ -31,13 +31,23 @@ serve(async (req) => {
     console.log(`Processing action: ${action}, projectKey: ${projectKey}`);
 
     if (action === 'getProjects') {
+      console.log('Fetching projects from:', `${JIRA_BASE_URL}/rest/api/3/project`);
+      console.log('Using email:', JIRA_EMAIL);
+      
       const response = await fetch(`${JIRA_BASE_URL}/rest/api/3/project`, { headers });
+      const responseText = await response.text();
+      
+      console.log('Jira API response status:', response.status);
+      console.log('Jira API response body:', responseText.substring(0, 500));
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Jira getProjects error:', response.status, errorText);
-        throw new Error(`Jira API error: ${response.status}`);
+        console.error('Jira getProjects error:', response.status, responseText);
+        throw new Error(`Jira API error: ${response.status} - ${responseText}`);
       }
-      const projects = await response.json();
+      
+      const projects = JSON.parse(responseText);
+      console.log('Found projects count:', Array.isArray(projects) ? projects.length : 'not an array');
+      
       return new Response(JSON.stringify({ projects }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
